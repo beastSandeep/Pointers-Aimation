@@ -1,0 +1,14 @@
+{
+  "version": 0,
+  "timeEvents": [
+    {
+      "name": "RAM I",
+      "targetTime": 5.108619646147931
+    },
+    {
+      "name": "RAM V",
+      "targetTime": 10.28241107998462
+    }
+  ],
+  "seed": 1955219122
+}
