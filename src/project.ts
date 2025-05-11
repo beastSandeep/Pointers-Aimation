@@ -13,12 +13,14 @@ Code.defaultHighlighter = new LezerHighlighter(
 import intro from "./scenes/intro?scene";
 import memoryMap from "./scenes/memoryMap?scene";
 import ram from "./scenes/ram?scene";
+import pointers from "./scenes/pointers?scene";
 import "./global.css";
 
 export default makeProject({
   scenes: [
     // intro,
     // ram,
-    memoryMap,
+    // memoryMap,
+    pointers,
   ],
 });

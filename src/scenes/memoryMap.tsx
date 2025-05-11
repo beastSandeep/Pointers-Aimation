@@ -7,8 +7,6 @@ import {
   QuadBezier,
   LezerHighlighter,
   Txt,
-  word,
-  lines,
 } from "@motion-canvas/2d";
 
 import { color } from "../constant";
@@ -22,6 +20,7 @@ import {
   createSignal,
   DEFAULT,
   easeInExpo,
+  fadeTransition,
   linear,
   makeRef,
   range,
@@ -109,6 +108,7 @@ export default makeScene2D(function* (view) {
         endArrow
         stroke={color.blue}
         lineDash={[11]}
+        arrowSize={10}
         p0={[350, 0]}
         p1={[620, 20]}
         p2={[590, -350]}
@@ -351,6 +351,7 @@ The variable name then serves as an identifier to access the value stored at tha
 
       <QuadBezier
         ref={curvePoninting}
+        arrowSize={10}
         p0={[-200, 50]}
         p1={[-25, 300]}
         p2={[150, 50]}
@@ -401,6 +402,7 @@ The variable name then serves as an identifier to access the value stored at tha
 
       <QuadBezier
         ref={curvePoninting}
+        arrowSize={10}
         p0={[-150, 150 + 50]}
         p1={[-25, 150 + 200]}
         p2={[100, 150 + 50]}
@@ -491,6 +493,7 @@ printf("%u", *(&i));`,
 
       <QuadBezier
         ref={curvePoninting}
+        arrowSize={10}
         p0={[-250, 200]}
         p1={[-150, 350]}
         p2={[-50, 200]}
@@ -503,6 +506,7 @@ printf("%u", *(&i));`,
 
       <QuadBezier
         ref={curvePonintingTemp}
+        arrowSize={10}
         p0={[120 + -150, 200]}
         p1={[120 + -25, 350]}
         p2={[120 + 100, 200]}
@@ -639,7 +643,8 @@ and if you wonder what is "integer" word with pointer,
 Pointer variables have specific types for storing the addresses of other variables.
 For example, to store the address of an integer, we use an int* pointer; similarly,
 other types have corresponding pointer types.
-And here * is just a way to declare a pointer variable this has nothing to do with Dereference operator.`}
+And here * is just a way to declare a pointer variable
+this has nothing to do with "Dereference" operator.`}
     />
   );
   yield* speech().read(0.1, 3);
@@ -696,8 +701,121 @@ printf("%u %u", &i, j);
 printf("%u %u", i, *j);`,
       0.8
     ),
-    codeRef().position([180, 150], 0.8)
+    codeRef().position([80, 150], 0.8)
   );
 
   yield* waitFor(2);
+
+  const curve1 = createRef<QuadBezier>();
+  const curve2 = createRef<QuadBezier>();
+  const curve3 = createRef<QuadBezier>();
+  const curve4 = createRef<QuadBezier>();
+
+  view.add(
+    <>
+      <QuadBezier
+        end={0}
+        ref={curve1}
+        arrowSize={10}
+        p0={[210, 240]}
+        p1={[-500, 400]}
+        p2={[-800, -200]}
+        lineWidth={4}
+        stroke={color.red}
+        endArrow
+        startArrow
+      />
+
+      <QuadBezier
+        end={0}
+        ref={curve2}
+        arrowSize={10}
+        p0={[300, 240]}
+        p1={[-500, 500]}
+        p2={[-520, -280]}
+        lineWidth={4}
+        stroke={color.red}
+        endArrow
+        startArrow
+      />
+
+      <QuadBezier
+        end={0}
+        ref={curve3}
+        arrowSize={10}
+        p0={[200, 390]}
+        p1={[-800, 600]}
+        p2={[-800, -270]}
+        lineWidth={4}
+        stroke={color.green}
+        endArrow
+        startArrow
+      />
+
+      <QuadBezier
+        end={0}
+        ref={curve4}
+        arrowSize={10}
+        p0={[300, 400]}
+        p1={[-800, 600]}
+        p2={[-800, -270]}
+        lineWidth={4}
+        stroke={color.blue}
+        endArrow
+        startArrow
+      />
+    </>
+  );
+
+  yield* curve1().end(1, 2);
+  yield* curve1().start(1, 1);
+  curve1().remove();
+
+  yield* curve2().end(1, 2);
+  yield* curve2().start(1, 1);
+  curve2().remove();
+
+  yield* curve3().end(1, 2);
+  yield* curve3().start(1, 1);
+  curve3().remove();
+
+  yield* curve4().end(1, 2);
+  yield* curve4().start(1, 1);
+  curve4().remove();
+
+  const pointer = createRef<Code>();
+  view.add(
+    <Code
+      highlighter={new LezerHighlighter(parser)}
+      opacity={0}
+      ref={pointer}
+      fill={color.offWhite}
+      lineHeight={70}
+      fontSize={45}
+      position={[-500, 100]}
+      code={`So here "j" points to "i" variable
+that's why its called "POINTER" 🤩;`}
+    ></Code>
+  );
+
+  yield* all(
+    pointer().opacity(1, 1),
+    codeRef().position([300, codeRef().position().y], 1)
+  );
+
+  yield* view.opacity(0, 1);
+
+  memoryArrRef().remove();
+  memoryMapText().remove();
+  iText().remove();
+  addressTxtRef().remove();
+  ThreeText().remove();
+  jText().remove();
+  jValue().remove();
+  jAddressTextRef().remove();
+  codeRef().remove();
+  pointer().remove();
+  view.removeChildren();
+
+  yield* fadeTransition();
 });
