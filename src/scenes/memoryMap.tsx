@@ -108,7 +108,6 @@ export default makeScene2D(function* (view) {
         endArrow
         stroke={color.blue}
         lineDash={[11]}
-        arrowSize={10}
         p0={[350, 0]}
         p1={[620, 20]}
         p2={[590, -350]}

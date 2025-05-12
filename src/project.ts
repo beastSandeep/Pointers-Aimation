@@ -17,10 +17,5 @@ import pointers from "./scenes/pointers?scene";
 import "./global.css";
 
 export default makeProject({
-  scenes: [
-    // intro,
-    // ram,
-    // memoryMap,
-    pointers,
-  ],
+  scenes: [intro, ram, memoryMap, pointers],
 });
