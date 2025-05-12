@@ -21,6 +21,8 @@ import {
   range,
   createSignal,
   loop,
+  easeInExpo,
+  easeOutExpo,
 } from "@motion-canvas/core";
 import { color } from "../constant";
 import CImg from "../c.svg";
@@ -77,9 +79,9 @@ export default makeScene2D(function* (view) {
     </>
   );
 
-  yield* cImgRef().scale(2, 2, easeOutQuart);
+  yield* cImgRef().scale(2, 2, easeInExpo);
   yield* all(
-    cImgRef().position(view.size().scale(0.5).sub(100), 0.5, linear),
+    cImgRef().position(view.size().scale(0.5).sub(100), 0.5, easeOutExpo),
     cImgRef().scale(1, 0.5, linear)
   );
 

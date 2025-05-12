@@ -1,4 +1,5 @@
 import {
+  Camera,
   Layout,
   Node,
   NodeProps,
@@ -19,7 +20,9 @@ import {
   all,
   createRef,
   createSignal,
+  easeInExpo,
   easeInOutCubic,
+  easeOutExpo,
   linear,
   loop,
   makeRef,
@@ -62,8 +65,10 @@ export default class MemoryArray extends Node {
   public declare readonly side: SimpleSignal<number, this>;
 
   private readonly rects: Rect[] = [];
-  private readonly layoutRef = createRef<Layout>();
-  private focusedIndex = 0;
+  private cameraRef = createRef<Camera>();
+
+  private focusedZoomFactor = 1;
+  private focusExtraGap = 2000;
 
   public constructor(props?: MemoryArrayProps) {
     super({
@@ -71,100 +76,23 @@ export default class MemoryArray extends Node {
     });
 
     this.add(
-      <Layout ref={this.layoutRef}>
-        {range(this.count()).map((i) => (
-          <Rect
-            ref={makeRef(this.rects, i)}
-            x={() => (this.side() + this.gap()) * i}
-            width={() => this.side()}
-            height={() => this.side()}
-            stroke={this.borderColor()}
-            fill={this.fillColor()}
-            lineWidth={this.lineWidth()}
-            radius={2}
-          />
-        ))}
+      <Layout>
+        <Camera ref={this.cameraRef}>
+          {range(this.count()).map((i) => (
+            <Rect
+              ref={makeRef(this.rects, i)}
+              // x={() => (this.side() + this.gap()) * i}
+              x={(this.side() + this.gap()) * i}
+              width={() => this.side()}
+              height={() => this.side()}
+              stroke={this.borderColor()}
+              fill={this.fillColor()}
+              lineWidth={this.lineWidth()}
+              radius={2}
+            />
+          ))}
+        </Camera>
       </Layout>
-    );
-  }
-
-  private *center(which: number, duration: number, forwards: boolean = true) {
-    const index = Math.round(which) - 1;
-    const targetRect = this.rects[index];
-
-    if (targetRect) {
-      if (forwards) {
-        yield* this.layoutRef().position(
-          this.layoutRef()
-            .position()
-            .sub(targetRect.position())
-            .add(
-              this.layoutRef()
-                .position()
-                .sub(new Vector2(this.gap() * index, 0))
-            ),
-          duration,
-          easeInOutCubic
-        );
-      } else {
-        yield* this.layoutRef().position(
-          this.layoutRef()
-            .position()
-            .add(targetRect.position())
-            .sub(
-              this.layoutRef()
-                .position()
-                .add(new Vector2(this.gap() * index, 0))
-            ),
-          duration,
-          easeInOutCubic
-        );
-      }
-    }
-  }
-
-  public *focus(
-    which: number,
-    duration: number,
-    zoom: number = 1,
-    sColor: Color = this.borderColor(),
-    fColor: Color = this.fillColor()
-  ) {
-    this.focusedIndex = which - 1;
-
-    yield* all(
-      this.center(which, duration, true),
-      this.gap(this.gap() * 2, duration, easeInOutCubic),
-      this.rects[which - 1].scale(zoom, duration, easeInOutCubic),
-      this.rects[which - 1].stroke(sColor, duration, easeInOutCubic),
-      this.rects[which - 1].lineWidth(1, duration, easeInOutCubic),
-      this.rects[which - 1].fill(fColor, duration, easeInOutCubic)
-    );
-  }
-
-  public *unfocus(
-    duration: number,
-    timingFunctoin: TimingFunction = easeInOutCubic
-  ) {
-    yield* all(
-      this.center(1, duration, false),
-      this.gap(this.side(), duration, timingFunctoin),
-      this.rects[this.focusedIndex].scale(1, duration, timingFunctoin),
-      this.rects[this.focusedIndex].stroke(
-        this.borderColor(),
-        duration,
-        timingFunctoin
-      ),
-      this.rects[this.focusedIndex].lineWidth(
-        this.lineWidth(),
-        duration,
-        timingFunctoin
-      ),
-      this.rects[this.focusedIndex].fill(
-        this.fillColor(),
-        duration,
-        timingFunctoin
-      )
     );
   }
 
@@ -180,7 +108,7 @@ export default class MemoryArray extends Node {
       const obj = {
         r: this.rects[i],
         c: reverse
-          ? this.rects[i].position().x + shift + this.lineWidth()
+          ? this.rects[i].position().x + shift + this.lineWidth() // unfocus
           : this.rects[i].position().x - shift - this.lineWidth(),
       };
       arr.push(obj);
@@ -190,12 +118,77 @@ export default class MemoryArray extends Node {
       const obj = {
         r: this.rects[i],
         c: reverse
-          ? this.rects[i].position().x - shift - this.lineWidth()
+          ? this.rects[i].position().x - shift - this.lineWidth() //unfocus
           : this.rects[i].position().x + shift + this.lineWidth(),
       };
       arr.push(obj);
     }
+
     return arr;
+  }
+
+  public *focus(
+    which: number,
+    duration: number,
+    zoom: number = 1,
+    sColor: Color = this.borderColor(),
+    fColor: Color = this.fillColor(),
+    timingFunc: TimingFunction = easeInExpo
+  ) {
+    this.focusedZoomFactor = zoom;
+    yield* all(
+      this.rects[which - 1].scale(zoom, duration, timingFunc),
+      this.rects[which - 1].stroke(sColor, duration, timingFunc),
+      this.rects[which - 1].fill(fColor, duration, timingFunc),
+      this.cameraRef().centerOn(
+        this.rects[which - 1].position(),
+        duration,
+        timingFunc
+      ),
+      this.rects[which - 1].lineWidth(
+        this.lineWidth() / zoom,
+        duration,
+        timingFunc
+      ),
+      ...this.selector(which, zoom).map((obj) =>
+        obj.r.position(
+          [
+            obj.c > 0 ? obj.c + this.focusExtraGap : obj.c - this.focusExtraGap,
+            0,
+          ],
+          duration,
+          timingFunc
+        )
+      )
+    );
+  }
+
+  public *unfocus(
+    which: number,
+    duration: number,
+    sColor: Color = this.borderColor(),
+    fColor: Color = this.fillColor(),
+    timingFunc: TimingFunction = easeOutExpo
+  ) {
+    yield* all(
+      this.rects[which - 1].scale(1, duration, timingFunc),
+      this.rects[which - 1].stroke(sColor, duration, timingFunc),
+      this.rects[which - 1].fill(fColor, duration, timingFunc),
+      this.rects[which - 1].lineWidth(this.lineWidth(), duration, timingFunc),
+      this.cameraRef().reset(duration, timingFunc),
+      ...this.selector(which, this.focusedZoomFactor, true).map((obj) =>
+        obj.r.position(
+          [
+            obj.c > 0 ? obj.c - this.focusExtraGap : obj.c + this.focusExtraGap,
+            0,
+          ],
+          duration,
+          timingFunc
+        )
+      )
+    );
+
+    this.focusedZoomFactor = 1;
   }
 
   public *sizeChange(which: number, scaleFactor: number, duration: number) {

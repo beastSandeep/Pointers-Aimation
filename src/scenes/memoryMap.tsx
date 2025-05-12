@@ -1,6 +1,5 @@
 import {
   blur,
-  Circle,
   Code,
   Layout,
   makeScene2D,
@@ -17,14 +16,10 @@ import {
   chain,
   Color,
   createRef,
-  createSignal,
   DEFAULT,
-  easeInExpo,
   fadeTransition,
-  linear,
   makeRef,
   range,
-  sequence,
   Vector2,
   waitFor,
   waitUntil,
@@ -52,9 +47,8 @@ export default makeScene2D(function* (view) {
       <MemoryArray
         side={100}
         ref={memoryArrRef}
-        gap={0}
         count={20}
-        fillColor={color.darkBlue}
+        fillColor={color.black}
         opacity={0}
       />
 
@@ -69,10 +63,9 @@ export default makeScene2D(function* (view) {
   yield* memoryMapText().opacity(1, 1);
 
   yield* memoryArrRef().opacity(1, 1);
-  yield* memoryArrRef().gap(1000, 0.1);
   yield* memoryArrRef().focus(
-    10,
-    2,
+    4,
+    1,
     6,
     new Color(color.green),
     new Color(color.black)
@@ -238,9 +231,9 @@ export default makeScene2D(function* (view) {
 
   memoryMapText().text("Memory Map", 1);
 
-  yield* memoryArrRef().unfocus(1, linear);
+  yield* memoryArrRef().unfocus(4, 1);
+
   yield* all(
-    memoryArrRef().gap(0, 0.01, linear),
     memoryArrRef().side(80, 2),
     memoryArrRef().position([-750, -300], 3)
   );
@@ -597,7 +590,7 @@ int *j;`,
         fontSize={40}
         fontWeight={500}
         position={[
-          450 - view.size().scale(0.5).x,
+          510 - view.size().scale(0.5).x,
           240 - view.size().scale(0.5).y,
         ]}
         opacity={0}
@@ -611,7 +604,7 @@ int *j;`,
         fontSize={30}
         fontWeight={400}
         position={[
-          450 - view.size().scale(0.5).x,
+          510 - view.size().scale(0.5).x,
           310 - view.size().scale(0.5).y,
         ]}
         opacity={0}
@@ -624,7 +617,7 @@ int *j;`,
   yield* chain(
     jText().opacity(1, 1),
     jText().position(
-      [450 - view.size().scale(0.5).x, 160 - view.size().scale(0.5).y],
+      [510 - view.size().scale(0.5).x, 160 - view.size().scale(0.5).y],
       1.5
     )
   );
